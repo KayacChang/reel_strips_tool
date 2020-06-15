@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"main/logics"
 	"main/models"
 	"main/slot"
 )
@@ -13,10 +13,12 @@ func main() {
 		log.Panicln(err)
 	}
 
-	for i := 0; i < 1e3; i += 1 {
+	// for i := 0; i < 1e3; i += 1 {
 
-		res := slot.Spin(model.Reels.ThreeX5, model.Display)
+	res := slot.Spin(model.Reels.ThreeX5, model.Display)
 
-		fmt.Printf("%+v\n", res)
-	}
+	logics.Check(model.Paylines.ThreeX5, res)
+
+	// fmt.Printf("%+v\n", res)
+	// }
 }
