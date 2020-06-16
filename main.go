@@ -8,42 +8,6 @@ import (
 	"main/slot"
 )
 
-func LtoR(substitution map[string][]string) logics.CheckRule {
-
-	match := func(item, next string) bool {
-
-		if check, ok := substitution[item]; ok {
-			return Contain(next, check)
-		}
-
-		if _, ok := substitution[next]; ok {
-			return true
-		}
-
-		return item == next
-	}
-
-	return func(line []string) (string, int) {
-		fmt.Printf("%+v\n", line)
-
-		item := line[0]
-		count := 0
-
-		for count+1 < len(line) {
-
-			if !match(item, line[count+1]) {
-				item = line[count]
-
-				break
-			}
-
-			count += 1
-		}
-
-		return item, count
-	}
-}
-
 func Contain(val string, slice []string) bool {
 
 	for _, item := range slice {
@@ -63,13 +27,20 @@ func main() {
 
 	display := slot.Spin(model.Reels.ThreeX5, model.Display)
 
-	game := logics.LineGame{
-		PayLines:  model.Paylines.ThreeX5,
-		Paytable:  model.Paytable,
-		CheckRule: LtoR(model.Substitution),
+	skip := func(item string, next string) bool {
+		mapping, ok := model.Substitution[next]
+
+		return ok && Contain(item, mapping)
 	}
 
-	results := game.Check(display)
+	game := logics.LineGame{
+		PayLines: model.Paylines.ThreeX5,
+		Paytable: model.Paytable,
+		Check:    logics.LtoR,
+		Skip:     skip,
+	}
+
+	results := game.Exec(display)
 
 	for _, result := range results {
 		fmt.Printf("%+v\n", result)
