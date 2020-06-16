@@ -1,37 +1,65 @@
 package logics
 
-import "fmt"
+type CheckRule func(line []string) (string, int)
 
-func hit(line []string) {
-
-	for count := 0; count < len(line); count += 1 {
-
-		// window := line[count]
-
-	}
-
+type LineGame struct {
+	PayLines  [][]int
+	Paytable  map[string][]int
+	CheckRule CheckRule
 }
 
-func mapToLine(payline []int, display [][]string) []string {
+type Result struct {
+	LineID     int
+	Line       []int
+	Symbols    []string
+	Item       string
+	Count      int
+	Multiplier int
+}
 
-	res := make([]string, 0, len(payline))
+func mapping(payline []int, display [][]string) []string {
+
+	line := make([]string, 0, len(payline))
 
 	for col, row := range payline {
 
 		symbol := display[col][row]
 
-		res = append(res, symbol)
+		line = append(line, symbol)
 	}
 
-	return res
+	return line
 }
 
-func Check(paylines [][]int, display [][]string) {
+func (it LineGame) Check(display [][]string) []Result {
 
-	for _, payline := range paylines {
+	results := []Result{}
 
-		line := mapToLine(payline, display)
+	for lineID, payline := range it.PayLines {
 
-		fmt.Printf("%+v\n", line)
+		line := mapping(payline, display)
+
+		item, hits := it.CheckRule(line)
+
+		mapBy, ok := it.Paytable[item]
+		if !ok {
+			continue
+		}
+
+		mul := mapBy[hits]
+		if mul == 0 {
+			continue
+		}
+
+		results = append(results, Result{
+			LineID:     lineID,
+			Line:       payline,
+			Symbols:    line,
+			Item:       item,
+			Count:      hits + 1,
+			Multiplier: mul,
+		})
 	}
+
+	return results
 }
